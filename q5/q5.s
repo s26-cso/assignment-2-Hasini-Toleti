@@ -1,81 +1,54 @@
 .data
-filename:.asciz "input.txt"
-buffer: .byte 0
-yesmsg:  .asciz "Yes\n"
-nomsg:   .asciz "No\n"
+input:    .space 100000
+fmt:      .asciz "%s"
+yesmsg:   .asciz "Yes\n"
+nomsg:    .asciz "No\n"
 
 .text
-.global
+.globl main
 
 main:
-    li a7,56
-    li a0,-100
-    la a1,filename
-    li a2,0
-    li a3,0
-    ecall
-    mv s0,a0
+    addi sp, sp, -16
+    sd ra, 8(sp)
+    la a0, fmt
+    la a1, input
+    call scanf
+    la t0, input
+    mv t1, t0
+    li t2, 0
 
-    li a7,62
-    mv a0,s0
-    li a1,0
-    li a2,2
-    ecall
-    mv s2,a0
+len_loop:
+    lb t3, 0(t1)
+    beq t3, zero, len_done
+    addi t2, t2, 1
+    addi t1, t1, 1
+    j len_loop
 
-    addi s2,s2,-1
-    li s1,0
+len_done:
+    mv t1, t0
+    add t4, t0, t2
+    addi t4, t4, -1
 
-palloop:
-    bge s1,s2,ispal
-    li a7,62
-    mv a0,s0
-    mv a1,s1
-    li a2,0
-    ecall
-
-    li a7,63
-    mv a0,s0
-    la a1,buffer
-    li a2,1
-    ecall
-    lb t0,buffer
-
-    li a7,62
-    mv a0,s0
-    mv a1,s2
-    li a2,0
-    ecall
-
-    li a7,63
-    mv a0,s0
-    la a1,buffer
-    li a2,1
-    ecall
-    lb t1,buffer
-
-    bne t0,t1,notpal
-
-    addi s1,s1,1
-    addi s2,s2,-1
-    j palloop
+pal_loop:
+    bge t1, t4, ispal
+    lb t5, 0(t1)
+    lb t6, 0(t4)
+    bne t5, t6, notpal
+    addi t1, t1, 1
+    addi t4, t4, -1
+    j pal_loop
 
 ispal:
-    li a7,64
-    li a0,1
-    la a1,yesmsg
-    li a2,4
-    ecall
+    la a0, yesmsg
+    call printf
     j exit
 
 notpal:
-    li a7,64
-    li a0,1
-    la a1,nomsg
-    li a2,3
-    ecall
+    la a0, nomsg
+    call printf
 
 exit:
-    li a7,93
-    li a0,0
-    ecall
+    ld ra, 8(sp)
+    addi sp, sp, 16
+    li a0, 0
+    ret
