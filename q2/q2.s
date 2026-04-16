@@ -100,10 +100,17 @@ printloop:
     add t2,s2,t1
     lw a0,0(t2)
     call printint
+    #la a0,space
+    #call printf
+    addi t0,t0,1
+    blt t0,s0,printspace
+    j printloop
+
+printspace:
     la a0,space
     call printf
-    addi t0,t0,1
     j printloop
+    
 
 done:
     la a0,newline
